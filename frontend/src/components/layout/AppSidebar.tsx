@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -26,7 +26,6 @@ import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { LanguageToggle } from '@/components/common/LanguageToggle'
 import { TranslationKeys } from '@/lib/locales'
 import { useTranslation } from '@/lib/hooks/use-translation'
-import { Separator } from '@/components/ui/separator'
 import {
   Book,
   Search,
@@ -40,38 +39,17 @@ import {
   FileText,
   Plus,
   Wrench,
-  Command,
 } from 'lucide-react'
 
 const getNavigation = (t: TranslationKeys) => [
-  {
-    title: t.navigation.collect,
-    items: [
-      { name: t.navigation.sources, href: '/sources', icon: FileText },
-    ],
-  },
-  {
-    title: t.navigation.process,
-    items: [
-      { name: t.navigation.notebooks, href: '/notebooks', icon: Book },
-      { name: t.navigation.askAndSearch, href: '/search', icon: Search },
-    ],
-  },
-  {
-    title: t.navigation.create,
-    items: [
-      { name: t.navigation.podcasts, href: '/podcasts', icon: Mic },
-    ],
-  },
-  {
-    title: t.navigation.manage,
-    items: [
-      { name: t.navigation.models, href: '/models', icon: Bot },
-      { name: t.navigation.transformations, href: '/transformations', icon: Shuffle },
-      { name: t.navigation.settings, href: '/settings', icon: Settings },
-      { name: t.navigation.advanced, href: '/advanced', icon: Wrench },
-    ],
-  },
+  { name: t.navigation.notebooks, href: '/notebooks', icon: Book },
+  { name: t.navigation.sources, href: '/sources', icon: FileText },
+  { name: t.navigation.askAndSearch, href: '/search', icon: Search },
+  { name: t.navigation.podcasts, href: '/podcasts', icon: Mic },
+  { name: t.navigation.models, href: '/models', icon: Bot },
+  { name: t.navigation.transformations, href: '/transformations', icon: Shuffle },
+  { name: t.navigation.settings, href: '/settings', icon: Settings },
+  { name: t.navigation.advanced, href: '/advanced', icon: Wrench },
 ] as const
 
 type CreateTarget = 'source' | 'notebook' | 'podcast'
@@ -85,13 +63,6 @@ export function AppSidebar() {
   const { openSourceDialog, openNotebookDialog, openPodcastDialog } = useCreateDialogs()
 
   const [createMenuOpen, setCreateMenuOpen] = useState(false)
-  const [isMac, setIsMac] = useState(true) // Default to Mac for SSR
-
-  // Detect platform for keyboard shortcut display
-  useEffect(() => {
-    setIsMac(navigator.platform.toLowerCase().includes('mac'))
-  }, [])
-
   const handleCreateSelection = (target: CreateTarget) => {
     setCreateMenuOpen(false)
 
@@ -108,7 +79,7 @@ export function AppSidebar() {
     <TooltipProvider delayDuration={0}>
       <div
         className={cn(
-          'app-sidebar flex h-full flex-col bg-sidebar border-sidebar-border border-r transition-all duration-300',
+          'app-sidebar flex h-full flex-col bg-sidebar border-sidebar-border border-r transition-all duration-300 backdrop-blur-xl shadow-xl',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -159,13 +130,13 @@ export function AppSidebar() {
 
         <nav
           className={cn(
-            'flex-1 space-y-1 py-4',
+            'flex-1 space-y-2 py-4',
             isCollapsed ? 'px-2' : 'px-3'
           )}
         >
           <div
             className={cn(
-              'mb-4',
+              'mb-3',
               isCollapsed ? 'px-0' : 'px-3'
             )}
           >
@@ -240,56 +211,41 @@ export function AppSidebar() {
             </DropdownMenu>
           </div>
 
-          {navigation.map((section, index) => (
-            <div key={section.title}>
-              {index > 0 && (
-                <Separator className="my-3" />
-              )}
-              <div className="space-y-1">
-                {!isCollapsed && (
-                  <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/60">
-                    {section.title}
-                  </h3>
+          {navigation.map((item) => {
+            const isActive = pathname?.startsWith(item.href) || false
+            const button = (
+              <Button
+                variant={isActive ? 'secondary' : 'ghost'}
+                className={cn(
+                  'w-full gap-3 text-sidebar-foreground sidebar-menu-item',
+                  isActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
+                  isCollapsed ? 'justify-center px-2' : 'justify-start'
                 )}
+              >
+                <item.icon className="h-4 w-4" />
+                {!isCollapsed && <span>{item.name}</span>}
+              </Button>
+            )
 
-                {section.items.map((item) => {
-                  const isActive = pathname?.startsWith(item.href) || false
-                  const button = (
-                    <Button
-                      variant={isActive ? 'secondary' : 'ghost'}
-                      className={cn(
-                        'w-full gap-3 text-sidebar-foreground sidebar-menu-item',
-                        isActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
-                        isCollapsed ? 'justify-center px-2' : 'justify-start'
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.name}</span>}
-                    </Button>
-                  )
-
-                  if (isCollapsed) {
-                    return (
-                      <Tooltip key={item.name}>
-                        <TooltipTrigger asChild>
-                          <Link href={item.href}>
-                            {button}
-                          </Link>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">{item.name}</TooltipContent>
-                      </Tooltip>
-                    )
-                  }
-
-                  return (
-                    <Link key={item.name} href={item.href}>
+            if (isCollapsed) {
+              return (
+                <Tooltip key={item.name}>
+                  <TooltipTrigger asChild>
+                    <Link href={item.href}>
                       {button}
                     </Link>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.name}</TooltipContent>
+                </Tooltip>
+              )
+            }
+
+            return (
+              <Link key={item.name} href={item.href}>
+                {button}
+              </Link>
+            )
+          })}
         </nav>
 
         <div
@@ -298,25 +254,7 @@ export function AppSidebar() {
             isCollapsed && 'px-2'
           )}
         >
-          {/* Command Palette hint */}
-          {!isCollapsed && (
-            <div className="px-3 py-1.5 text-xs text-sidebar-foreground/60">
-              <div className="flex items-center justify-between">
-                 <span className="flex items-center gap-1.5">
-                  <Command className="h-3 w-3" />
-                  {t.common.quickActions}
-                </span>
-                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                  {isMac ? <span className="text-xs">⌘</span> : <span>Ctrl+</span>}K
-                </kbd>
-              </div>
-               <p className="mt-1 text-[10px] text-sidebar-foreground/40">
-                {t.common.quickActionsDesc}
-              </p>
-            </div>
-          )}
-
-           <div
+          <div
             className={cn(
               'flex flex-col gap-2',
               isCollapsed ? 'items-center' : 'items-stretch'
