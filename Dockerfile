@@ -60,6 +60,9 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Install SurrealDB
+RUN curl --proto '=https' --tlsv1.2 -sSf https://install.surrealdb.com | sh
+
 # Install uv using the official method
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
@@ -85,7 +88,8 @@ COPY --from=builder /app/frontend/start-server.js /app/frontend/start-server.js
 # Expose ports for Frontend and API
 EXPOSE 8502 5055
 
-RUN mkdir -p /app/data
+# Create data directories
+RUN mkdir -p /app/data /mydata
 
 # Copy and make executable the wait-for-api script
 COPY scripts/wait-for-api.sh /app/scripts/wait-for-api.sh
