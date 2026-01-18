@@ -23,7 +23,7 @@ def get_database_url():
 
 def get_database_password():
     """Get password with backward compatibility"""
-    return os.getenv("SURREAL_PASSWORD") or os.getenv("SURREAL_PASS")
+    return os.getenv("SURREAL_PASSWORD") or os.getenv("SURREAL_PASS") or "root"
 
 
 def parse_record_ids(obj: Any) -> Any:
@@ -49,12 +49,13 @@ async def db_connection():
     db = AsyncSurreal(get_database_url())
     await db.signin(
         {
-            "username": os.environ.get("SURREAL_USER"),
+            "username": os.environ.get("SURREAL_USER") or "root",
             "password": get_database_password(),
         }
     )
     await db.use(
-        os.environ.get("SURREAL_NAMESPACE"), os.environ.get("SURREAL_DATABASE")
+        os.environ.get("SURREAL_NAMESPACE") or "open_notebook",
+        os.environ.get("SURREAL_DATABASE") or "open_notebook",
     )
     try:
         yield db
