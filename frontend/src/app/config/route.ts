@@ -32,6 +32,19 @@ export async function GET(request: NextRequest) {
     })
   }
 
+  // Railway: use relative URL so Next.js rewrites proxy to the internal API
+  const isRailway = Boolean(
+    process.env.RAILWAY_PUBLIC_DOMAIN ||
+    process.env.RAILWAY_STATIC_URL ||
+    process.env.RAILWAY_ENVIRONMENT
+  )
+
+  if (isRailway) {
+    return NextResponse.json({
+      apiUrl: '',
+    })
+  }
+
   // Priority 2: Auto-detect from request headers
   try {
     // Get the protocol (http or https)
@@ -60,9 +73,9 @@ export async function GET(request: NextRequest) {
     console.error('[runtime-config] Auto-detection failed:', error)
   }
 
-  // Priority 3: Fallback to localhost
-  console.log('[runtime-config] Using fallback: http://localhost:5055')
+  // Priority 3: Fallback to relative URL (use Next.js rewrites)
+  console.log('[runtime-config] Using fallback: relative URL')
   return NextResponse.json({
-    apiUrl: 'http://localhost:5055',
+    apiUrl: '',
   })
 }
