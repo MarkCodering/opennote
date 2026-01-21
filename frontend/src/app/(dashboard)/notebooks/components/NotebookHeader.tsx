@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { NotebookResponse } from '@/lib/types/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Archive, ArchiveRestore, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, Trash2, FileText, StickyNote, Sparkles } from 'lucide-react'
 import { useUpdateNotebook, useDeleteNotebook } from '@/lib/hooks/use-notebooks'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { formatDistanceToNow } from 'date-fns'
@@ -57,23 +57,38 @@ export function NotebookHeader({ notebook }: NotebookHeaderProps) {
   return (
     <>
       <div className="border-b pb-6">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3 flex-1">
-              <InlineEdit
-                id="notebook-name"
-                name="notebook-name"
-                value={notebook.name}
-                onSave={handleUpdateName}
-                className="text-2xl font-bold"
-                inputClassName="text-2xl font-bold"
-                placeholder={t.notebooks.namePlaceholder}
-              />
-              {notebook.archived && (
-                <Badge variant="secondary">{t.notebooks.archived}</Badge>
-              )}
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <InlineEdit
+                  id="notebook-name"
+                  name="notebook-name"
+                  value={notebook.name}
+                  onSave={handleUpdateName}
+                  className="text-2xl font-bold"
+                  inputClassName="text-2xl font-bold"
+                  placeholder={t.notebooks.namePlaceholder}
+                />
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="outline" className="gap-1">
+                    <FileText className="h-3 w-3" />
+                    {notebook.source_count} {t.navigation.sources}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <StickyNote className="h-3 w-3" />
+                    {notebook.note_count} {t.common.notes}
+                  </Badge>
+                  {notebook.archived && (
+                    <Badge variant="secondary">{t.notebooks.archived}</Badge>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"

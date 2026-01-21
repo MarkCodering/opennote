@@ -8,12 +8,28 @@ import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { ConnectionGuard } from "@/components/common/ConnectionGuard";
 import { themeScript } from "@/lib/theme-script";
 import { I18nProvider } from "@/components/providers/I18nProvider";
+import { PwaRegistration } from "@/components/common/PwaRegistration";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Open Notebook",
+  title: "OpenNote",
   description: "Privacy-focused research and knowledge management",
+  applicationName: "OpenNote",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "OpenNote",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [{ url: "/icons/opennote-icon.svg", sizes: "any", type: "image/svg+xml" }],
+    apple: [{ url: "/icons/opennote-icon.svg", sizes: "any", type: "image/svg+xml" }],
+  },
+};
+
+export const viewport = {
+  themeColor: "#6366f1",
 };
 
 export default function RootLayout({
@@ -33,6 +49,7 @@ export default function RootLayout({
               <I18nProvider>
                 <ConnectionGuard>
                   {children}
+                  <PwaRegistration />
                   <Toaster />
                 </ConnectionGuard>
               </I18nProvider>
