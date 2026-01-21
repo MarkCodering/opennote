@@ -95,6 +95,8 @@ export const ptBR = {
     saveToNote: "Salvar em nota",
     copyToClipboard: "Copiar para área de transferência",
     close: "Fechar",
+    showToolbar: "Mostrar barra de ferramentas",
+    hideToolbar: "Ocultar barra de ferramentas",
     insights: "Insights",
     progress: "Progresso",
     deleting: "Excluindo...",

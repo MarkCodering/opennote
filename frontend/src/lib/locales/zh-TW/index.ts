@@ -96,6 +96,8 @@ export const zhTW = {
     saveToNote: "儲存到筆記",
     copyToClipboard: "複製到剪貼簿",
     close: "關閉",
+    showToolbar: "顯示工具列",
+    hideToolbar: "隱藏工具列",
     insights: "見解",
     progress: "進度",
     deleting: "正在刪除...",

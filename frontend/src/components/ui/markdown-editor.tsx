@@ -22,7 +22,7 @@ export interface MarkdownEditorProps {
 }
 
 export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
-  ({ value = '', onChange, placeholder, height = 300, preview = 'live', hideToolbar = false, className, textareaId, name }, ref) => {
+  ({ value = '', onChange, placeholder, height, preview = 'live', hideToolbar = false, className, textareaId, name }, ref) => {
     const { isDark } = useTheme()
     return (
       <div className={className} ref={ref}>
@@ -30,7 +30,7 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
           value={value}
           onChange={onChange}
           preview={preview}
-          height={height}
+          {...(height !== undefined ? { height } : {})}
           hideToolbar={hideToolbar}
           textareaProps={{
             placeholder: placeholder || 'Enter markdown...',

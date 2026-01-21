@@ -95,6 +95,8 @@ export const enUS = {
     saveToNote: "Save to note",
     copyToClipboard: "Copy to clipboard",
     close: "Close",
+    showToolbar: "Show toolbar",
+    hideToolbar: "Hide toolbar",
     insights: "Insights",
     progress: "Progress",
     deleting: "Deleting...",
