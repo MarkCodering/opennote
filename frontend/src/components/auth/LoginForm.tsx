@@ -8,9 +8,10 @@ import { getConfig } from '@/lib/config'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Book, Search, FileText, Sparkles } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useTranslation } from '@/lib/hooks/use-translation'
+import Image from 'next/image'
 
 export function LoginForm() {
   const { t, language } = useTranslation()
@@ -20,6 +21,57 @@ export function LoginForm() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [configInfo, setConfigInfo] = useState<{ apiUrl: string; version: string; buildTime: string } | null>(null)
   const router = useRouter()
+  const highlights = [
+    { icon: Book, label: t.navigation.notebooks },
+    { icon: FileText, label: t.navigation.sources },
+    { icon: Search, label: t.navigation.askAndSearch },
+  ]
+
+  const AuthShell = ({ children }: { children: React.ReactNode }) => (
+    <div className="auth-portal min-h-screen flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-5xl">
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-stretch">
+          <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-border/60 bg-card/70 p-8 shadow-sm">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <Image src="/logo.svg" alt={t.common.appName} width={28} height={28} />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    {t.common.appName}
+                  </div>
+                  <div className="text-2xl font-semibold text-foreground">
+                    {t.auth.loginTitle}
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t.auth.loginDesc}
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Sparkles className="h-4 w-4 text-primary" />
+                {t.common.appName}
+              </div>
+              <div className="space-y-3">
+                {highlights.map((item) => (
+                  <div key={item.label} className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-muted/70 text-foreground">
+                      <item.icon className="h-4 w-4" />
+                    </span>
+                    <span className="font-medium text-foreground">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
 
   // Load config info for debugging
   useEffect(() => {
@@ -71,18 +123,22 @@ export function LoginForm() {
   // Show loading while checking if auth is required
   if (!hasHydrated || isCheckingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <LoadingSpinner />
-      </div>
+      <AuthShell>
+        <Card className="auth-card w-full border border-border/60 rounded-3xl">
+          <CardContent className="flex min-h-[320px] items-center justify-center">
+            <LoadingSpinner />
+          </CardContent>
+        </Card>
+      </AuthShell>
     )
   }
 
   // If we still don't know if auth is required (connection error), show error
   if (authRequired === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
+      <AuthShell>
+        <Card className="auth-card w-full border border-border/60 rounded-3xl">
+          <CardHeader className="text-center space-y-2">
             <CardTitle>{t.common.connectionError}</CardTitle>
             <CardDescription>
               {t.common.unableToConnect}
@@ -121,7 +177,7 @@ export function LoginForm() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </AuthShell>
     )
   }
 
@@ -138,9 +194,9 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+    <AuthShell>
+      <Card className="auth-card w-full border border-border/60 rounded-3xl">
+        <CardHeader className="text-center space-y-2">
           <CardTitle>{t.auth.loginTitle}</CardTitle>
           <CardDescription>
             {t.auth.loginDesc}
@@ -148,13 +204,14 @@ export function LoginForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Input
                 type="password"
                 placeholder={t.auth.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+                className="h-11 text-base"
               />
             </div>
 
@@ -167,7 +224,7 @@ export function LoginForm() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full h-11 text-base font-semibold"
               disabled={isLoading || !password.trim()}
             >
               {isLoading ? t.auth.signingIn : t.auth.signIn}
@@ -182,6 +239,6 @@ export function LoginForm() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   )
 }

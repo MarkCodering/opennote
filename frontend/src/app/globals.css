@@ -121,15 +121,17 @@
 
   body {
     @apply bg-background text-foreground transition-colors;
-    background-image: radial-gradient(circle at top left, rgba(99, 102, 241, 0.08), transparent 55%),
-      radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.06), transparent 50%),
-      linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(255, 255, 255, 0.98));
+    background-image: radial-gradient(circle at top left, rgba(99, 102, 241, 0.1), transparent 60%),
+      radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.08), transparent 55%),
+      linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.99));
+    background-attachment: fixed;
   }
 
   .dark body {
-    background-image: radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 55%),
-      radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.08), transparent 50%),
+    background-image: radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 60%),
+      radial-gradient(circle at 85% 0%, rgba(14, 165, 233, 0.1), transparent 55%),
       linear-gradient(180deg, rgba(8, 10, 16, 0.98), rgba(12, 14, 22, 0.96));
+    background-attachment: fixed;
   }
 
   /* Ensure proper theme inheritance for popovers and dropdowns */
@@ -158,6 +160,7 @@
     color: var(--sidebar-foreground);
     border-color: var(--sidebar-border);
     backdrop-filter: blur(20px);
+    box-shadow: 1px 0 24px rgba(15, 23, 42, 0.08);
   }
 
   /* Enhanced sidebar menu item hover effects */
@@ -173,6 +176,32 @@
 
   .dark .sidebar-menu-item:hover {
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
+  }
+
+  .sidebar-menu-item[data-active='true'] {
+    background-color: var(--sidebar-accent) !important;
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--sidebar-border), transparent 30%);
+  }
+
+  .auth-portal {
+    background-image: radial-gradient(circle at top left, rgba(99, 102, 241, 0.12), transparent 55%),
+      radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.1), transparent 50%),
+      linear-gradient(160deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 0.95));
+  }
+
+  .dark .auth-portal {
+    background-image: radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 55%),
+      radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.12), transparent 50%),
+      linear-gradient(160deg, rgba(8, 10, 16, 0.98), rgba(12, 14, 22, 0.96));
+  }
+
+  .auth-card {
+    @apply border-border/60 bg-card/80 backdrop-blur-xl;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  }
+
+  .dark .auth-card {
+    box-shadow: 0 24px 60px rgba(5, 10, 20, 0.45);
   }
 
   /* Enhanced hover effects for cards */
