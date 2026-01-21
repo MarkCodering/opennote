@@ -8,7 +8,7 @@ import { getConfig } from '@/lib/config'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertCircle, Book, Search, FileText, Sparkles } from 'lucide-react'
+import { AlertCircle, Book, Search, FileText, Sparkles, Chrome, ShieldCheck } from 'lucide-react'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useTranslation } from '@/lib/hooks/use-translation'
 import Image from 'next/image'
@@ -31,10 +31,10 @@ export function LoginForm() {
     <div className="auth-portal min-h-screen flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-5xl">
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-stretch">
-          <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-border/60 bg-card/70 p-8 shadow-sm">
+          <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-border/60 bg-card/70 p-8 shadow-sm ide-panel">
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm ide-glow">
                   <Image src="/logo.svg" alt={t.common.appName} width={28} height={28} />
                 </div>
                 <div>
@@ -53,7 +53,7 @@ export function LoginForm() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Sparkles className="h-4 w-4 text-primary" />
-                {t.common.appName}
+                {t.auth.portalHighlight}
               </div>
               <div className="space-y-3">
                 {highlights.map((item) => (
@@ -64,6 +64,10 @@ export function LoginForm() {
                     <span className="font-medium text-foreground">{item.label}</span>
                   </div>
                 ))}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                {t.auth.enterpriseReady}
               </div>
             </div>
           </div>
@@ -193,6 +197,11 @@ export function LoginForm() {
     }
   }
 
+  const handleGoogleLogin = () => {
+    const baseUrl = configInfo?.apiUrl?.replace(/\/$/, '') ?? ''
+    window.location.href = `${baseUrl}/api/auth/google`
+  }
+
   return (
     <AuthShell>
       <Card className="auth-card w-full border border-border/60 rounded-3xl">
@@ -204,6 +213,22 @@ export function LoginForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11 text-base font-semibold gap-2"
+                onClick={handleGoogleLogin}
+              >
+                <Chrome className="h-4 w-4" />
+                {t.auth.signInWithGoogle}
+              </Button>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                {t.auth.orContinueWith}
+                <span className="h-px flex-1 bg-border" />
+              </div>
+            </div>
             <div className="space-y-2">
               <Input
                 type="password"
