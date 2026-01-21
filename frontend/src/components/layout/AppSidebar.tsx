@@ -79,13 +79,13 @@ export function AppSidebar() {
     <TooltipProvider delayDuration={0}>
       <div
         className={cn(
-          'app-sidebar flex h-full flex-col bg-sidebar border-sidebar-border border-r transition-all duration-300 backdrop-blur-xl shadow-xl',
+          'app-sidebar flex h-full flex-col bg-sidebar border-sidebar-border border-r transition-all duration-300 backdrop-blur-xl',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
         <div
           className={cn(
-            'flex h-16 items-center group',
+            'flex h-16 items-center group border-b border-sidebar-border/70',
             isCollapsed ? 'justify-center px-2' : 'justify-between px-4'
           )}
         >
@@ -110,8 +110,10 @@ export function AppSidebar() {
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <Image src="/logo.svg" alt={t.common.appName} width={32} height={32} />
-                <span className="text-base font-medium text-sidebar-foreground">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sidebar-accent/70 border border-sidebar-border/60">
+                  <Image src="/logo.svg" alt={t.common.appName} width={22} height={22} />
+                </div>
+                <span className="text-base font-semibold text-sidebar-foreground tracking-tight">
                   {t.common.appName}
                 </span>
               </div>
@@ -145,15 +147,15 @@ export function AppSidebar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        onClick={() => setCreateMenuOpen(true)}
-                        variant="default"
-                        size="sm"
-                        className="w-full justify-center px-2 bg-primary hover:bg-primary/90 text-primary-foreground border-0"
-                        aria-label={t.common.create}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
+                  <Button
+                    onClick={() => setCreateMenuOpen(true)}
+                    variant="default"
+                    size="sm"
+                    className="w-full justify-center px-2 bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-sm ring-1 ring-primary/20"
+                    aria-label={t.common.create}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
                    <TooltipContent side="right">{t.common.create}</TooltipContent>
@@ -164,7 +166,7 @@ export function AppSidebar() {
                     onClick={() => setCreateMenuOpen(true)}
                     variant="default"
                     size="sm"
-                    className="w-full justify-start bg-primary hover:bg-primary/90 text-primary-foreground border-0"
+                    className="w-full justify-start bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-sm ring-1 ring-primary/20"
                    >
                     <Plus className="h-4 w-4 mr-2" />
                     {t.common.create}
@@ -217,11 +219,15 @@ export function AppSidebar() {
               <Button
                 variant={isActive ? 'secondary' : 'ghost'}
                 className={cn(
-                  'w-full gap-3 text-sidebar-foreground sidebar-menu-item',
+                  'w-full gap-3 text-sidebar-foreground sidebar-menu-item relative overflow-hidden',
                   isActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
                   isCollapsed ? 'justify-center px-2' : 'justify-start'
                 )}
+                data-active={isActive}
               >
+                {isActive && !isCollapsed && (
+                  <span className="absolute left-1 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-primary" />
+                )}
                 <item.icon className="h-4 w-4" />
                 {!isCollapsed && <span>{item.name}</span>}
               </Button>
