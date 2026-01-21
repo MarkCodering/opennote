@@ -13,7 +13,7 @@ import { MarkdownEditor } from '@/components/ui/markdown-editor'
 import { InlineEdit } from '@/components/common/InlineEdit'
 import { cn } from '@/lib/utils'
 import { useTranslation } from '@/lib/hooks/use-translation'
-import { Blocks, Heading2, ListChecks, Quote, Code2, Table2 } from 'lucide-react'
+import { Blocks, Heading2, ListChecks, Quote, Code2, Table2, Eye, EyeOff } from 'lucide-react'
 
 const createNoteSchema = z.object({
   title: z.string().optional(),
@@ -59,6 +59,7 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
   const watchTitle = useWatch({ control, name: 'title' })
   const watchContent = useWatch({ control, name: 'content' })
   const [isEditorFullscreen, setIsEditorFullscreen] = useState(false)
+  const [isToolbarVisible, setIsToolbarVisible] = useState(false)
 
   const slashCommands = useMemo(() => ([
     {
@@ -185,14 +186,15 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
   const handleClose = () => {
     reset()
     setIsEditorFullscreen(false)
+    setIsToolbarVisible(false)
     onOpenChange(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className={cn(
-          "sm:max-w-3xl w-full max-h-[90vh] overflow-hidden p-0",
-          isEditorFullscreen && "!max-w-screen !max-h-screen border-none w-screen h-screen"
+        "sm:max-w-5xl w-[95vw] h-[85vh] max-h-[90vh] overflow-hidden p-0",
+        isEditorFullscreen && "!max-w-screen !max-h-screen border-none w-screen h-screen"
       )}>
         <DialogTitle className="sr-only">
           {isEditing ? t.sources.editNote : t.sources.createNote}
@@ -204,7 +206,7 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
             </div>
           ) : (
             <>
-              <div className="border-b px-6 py-4">
+              <div className="border-b px-6 py-4 flex items-center justify-between gap-4">
                 <InlineEdit
                   id="note-title"
                   name="title"
@@ -215,11 +217,22 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
                   className="text-xl font-semibold"
                   inputClassName="text-xl font-semibold"
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 gap-2"
+                  onClick={() => setIsToolbarVisible((prev) => !prev)}
+                >
+                  {isToolbarVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {isToolbarVisible ? t.common.hideToolbar : t.common.showToolbar}
+                </Button>
               </div>
 
               <div className={cn(
-                  "flex-1 overflow-y-auto",
-                  !isEditorFullscreen && "px-6 py-4")
+                "flex-1 min-h-0 flex flex-col overflow-hidden",
+                !isEditorFullscreen && "px-6 py-4"
+              )
               }>
                 <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-2 rounded-full border border-border/60 px-3 py-1">
@@ -234,17 +247,18 @@ export function NoteEditorDialog({ open, onOpenChange, notebookId, note }: NoteE
                   control={control}
                   name="content"
                   render={({ field }) => (
-                    <div className="relative">
+                    <div className="relative flex-1 min-h-0">
                       <MarkdownEditor
                         key={note?.id ?? 'new'}
                         textareaId="note-content"
                         value={field.value}
                         onChange={field.onChange}
-                        height={420}
+                        preview="live"
+                        hideToolbar={!isToolbarVisible}
                         placeholder={t.sources.writeNotePlaceholder}
                         className={cn(
-                            "w-full h-full min-h-[420px] [&_.w-md-editor]:!static [&_.w-md-editor]:!w-full [&_.w-md-editor]:!h-full",
-                            !isEditorFullscreen && "rounded-md border"
+                          "note-editor w-full h-full min-h-0 [&_.w-md-editor]:!static [&_.w-md-editor]:!w-full [&_.w-md-editor]:!h-full",
+                          !isEditorFullscreen && "rounded-md border"
                         )}
                       />
                       {slashMatch && (

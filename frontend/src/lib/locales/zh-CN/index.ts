@@ -98,6 +98,8 @@ export const zhCN = {
     saveToNote: "保存到笔记",
     copyToClipboard: "复制到剪贴板",
     close: "关闭",
+    showToolbar: "显示工具栏",
+    hideToolbar: "隐藏工具栏",
     insights: "见解",
     progress: "进度",
     deleting: "正在删除...",

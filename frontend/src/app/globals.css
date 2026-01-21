@@ -281,6 +281,13 @@
     background-color: color-mix(in oklab, var(--muted), transparent 30%) !important;
   }
 
+  .note-editor .w-md-editor,
+  .note-editor .w-md-editor-content,
+  .note-editor .w-md-editor-preview,
+  .note-editor .w-md-editor-text-input {
+    height: 100%;
+  }
+
   @keyframes floatIn {
     from {
       opacity: 0;
