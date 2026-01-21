@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { forwardRef } from 'react'
+import { useTheme } from '@/lib/stores/theme-store'
 
 const MDEditor = dynamic(
   () => import('@uiw/react-md-editor').then((mod) => mod.default),
@@ -22,6 +23,7 @@ export interface MarkdownEditorProps {
 
 export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
   ({ value = '', onChange, placeholder, height = 300, preview = 'live', hideToolbar = false, className, textareaId, name }, ref) => {
+    const { isDark } = useTheme()
     return (
       <div className={className} ref={ref}>
         <MDEditor
@@ -35,7 +37,7 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
             id: textareaId,
             name: name,
           }}
-          data-color-mode="light"
+          data-color-mode={isDark ? 'dark' : 'light'}
         />
       </div>
     )

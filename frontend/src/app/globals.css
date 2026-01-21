@@ -248,6 +248,39 @@
     animation: floatIn 0.2s ease-out;
   }
 
+  .w-md-editor {
+    background-color: var(--card) !important;
+    color: var(--card-foreground) !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+  }
+
+  .w-md-editor .w-md-editor-toolbar {
+    background-color: var(--card) !important;
+    border-bottom-color: var(--border) !important;
+  }
+
+  .w-md-editor .w-md-editor-text-input,
+  .w-md-editor .w-md-editor-preview,
+  .w-md-editor .wmde-markdown {
+    background-color: transparent !important;
+    color: var(--foreground) !important;
+  }
+
+  .w-md-editor .w-md-editor-toolbar li button {
+    color: var(--muted-foreground) !important;
+  }
+
+  .w-md-editor .w-md-editor-toolbar li button:hover {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
+
+  .w-md-editor .wmde-markdown code,
+  .w-md-editor .wmde-markdown pre {
+    background-color: color-mix(in oklab, var(--muted), transparent 30%) !important;
+  }
+
   @keyframes floatIn {
     from {
       opacity: 0;
