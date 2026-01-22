@@ -68,6 +68,12 @@ class ModelCreate(BaseModel):
         ...,
         description="Model type (language, embedding, text_to_speech, speech_to_text)",
     )
+    api_key: Optional[str] = Field(
+        None, description="Optional API key for the provider"
+    )
+    base_url: Optional[str] = Field(
+        None, description="Optional base URL override for the provider"
+    )
 
 
 class ModelResponse(BaseModel):

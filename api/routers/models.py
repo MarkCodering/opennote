@@ -12,6 +12,7 @@ from api.models import (
     ProviderAvailabilityResponse,
 )
 from open_notebook.ai.models import DefaultModels, Model
+from open_notebook.database.repository import repo_query
 from open_notebook.exceptions import InvalidInputError
 
 router = APIRouter()
@@ -57,6 +58,19 @@ def _check_azure_support(mode: str) -> bool:
     )
 
     return generic or specific
+
+
+async def _get_configured_providers() -> set[str]:
+    try:
+        results = await repo_query("SELECT provider, api_key, base_url FROM model")
+        return {
+            row.get("provider")
+            for row in results
+            if row.get("provider") and (row.get("api_key") or row.get("base_url"))
+        }
+    except Exception as e:
+        logger.warning(f"Failed to read model credentials: {e}")
+        return set()
 
 
 @router.get("/models", response_model=List[ModelResponse])
@@ -115,10 +129,15 @@ async def create_model(model_data: ModelCreate):
                 detail=f"Model '{model_data.name}' already exists for provider '{model_data.provider}' with type '{model_data.type}'",
             )
 
+        api_key = model_data.api_key.strip() if model_data.api_key else None
+        base_url = model_data.base_url.strip() if model_data.base_url else None
+
         new_model = Model(
             name=model_data.name,
             provider=model_data.provider,
             type=model_data.type,
+            api_key=api_key or None,
+            base_url=base_url or None,
         )
         await new_model.save()
 
@@ -268,48 +287,35 @@ async def get_provider_availability():
             ),
         }
 
-        available_providers = [k for k, v in provider_status.items() if v]
-        unavailable_providers = [k for k, v in provider_status.items() if not v]
-
-        # Get supported model types from Esperanto
         esperanto_available = AIFactory.get_available_providers()
-
-        # Build supported types mapping only for available providers
-        supported_types: dict[str, list[str]] = {}
-        for provider in available_providers:
-            supported_types[provider] = []
-
-            # Map Esperanto model types to our environment variable modes
-            mode_mapping = {
-                "language": "LLM",
-                "embedding": "EMBEDDING",
-                "speech_to_text": "STT",
-                "text_to_speech": "TTS",
+        all_providers = sorted(
+            {
+                provider
+                for providers in esperanto_available.values()
+                for provider in providers
             }
+        )
+        configured_providers = await _get_configured_providers()
 
-            # Special handling for openai-compatible to check mode-specific availability
-            if provider == "openai-compatible":
-                for model_type, mode in mode_mapping.items():
-                    if (
-                        model_type in esperanto_available
-                        and provider in esperanto_available[model_type]
-                    ):
-                        if _check_openai_compatible_support(mode):
-                            supported_types[provider].append(model_type)
-            # Special handling for azure to check mode-specific availability
-            elif provider == "azure":
-                for model_type, mode in mode_mapping.items():
-                    if (
-                        model_type in esperanto_available
-                        and provider in esperanto_available[model_type]
-                    ):
-                        if _check_azure_support(mode):
-                            supported_types[provider].append(model_type)
+        available_providers = []
+        unavailable_providers = []
+
+        # Build supported types mapping for all providers
+        supported_types: dict[str, list[str]] = {}
+        for provider in all_providers:
+            is_available = provider_status.get(provider, False) or (
+                provider in configured_providers
+            )
+            if is_available:
+                available_providers.append(provider)
             else:
-                # Standard provider detection
-                for model_type, providers in esperanto_available.items():
-                    if provider in providers:
-                        supported_types[provider].append(model_type)
+                unavailable_providers.append(provider)
+
+            supported_types[provider] = [
+                model_type
+                for model_type, providers in esperanto_available.items()
+                if provider in providers
+            ]
 
         return ProviderAvailabilityResponse(
             available=available_providers,

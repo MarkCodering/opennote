@@ -10,10 +10,11 @@ Use this quick tutorial to connect any supported cloud provider with your own AP
 
 1. **Pick a provider** from the sections below (OpenAI, Anthropic, Google, Groq, OpenRouter, etc.).
 2. **Create an API key** on the provider’s dashboard (links are in each section).
-3. **Add the key to your environment file**:
-   - Local development: `.env`
-   - Docker deployments: `docker.env`
-4. **Restart Open Notebook** so it loads the new environment variables.
+3. **Add the key in the app or via environment variables**:
+   - **In-app (recommended):** **Models → Add Model → API Key**
+   - **Local development:** `.env`
+   - **Docker deployments:** `docker.env`
+4. **Restart Open Notebook** if you used environment variables.
 5. **Verify in the UI**: go to **Models → Providers** and confirm your provider shows as available.
 
 Example (OpenAI):

@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, Optional, Union
+from typing import Any, ClassVar, Dict, Optional, Union
 
 from esperanto import (
     AIFactory,
@@ -20,6 +20,8 @@ class Model(ObjectModel):
     name: str
     provider: str
     type: str
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
 
     @classmethod
     async def get_models_by_type(cls, model_type):
@@ -87,30 +89,39 @@ class ModelManager:
         ]:
             raise ValueError(f"Invalid model type: {model.type}")
 
+        config: Dict[str, Any] = {}
+        if model.api_key:
+            config["api_key"] = model.api_key
+        if model.base_url:
+            config["base_url"] = model.base_url
+
+        if kwargs:
+            config.update(kwargs)
+
         # Create model based on type (Esperanto will cache the instance)
         if model.type == "language":
             return AIFactory.create_language(
                 model_name=model.name,
                 provider=model.provider,
-                config=kwargs,
+                config=config,
             )
         elif model.type == "embedding":
             return AIFactory.create_embedding(
                 model_name=model.name,
                 provider=model.provider,
-                config=kwargs,
+                config=config,
             )
         elif model.type == "speech_to_text":
             return AIFactory.create_speech_to_text(
                 model_name=model.name,
                 provider=model.provider,
-                config=kwargs,
+                config=config,
             )
         elif model.type == "text_to_speech":
             return AIFactory.create_text_to_speech(
                 model_name=model.name,
                 provider=model.provider,
-                config=kwargs,
+                config=config,
             )
         else:
             raise ValueError(f"Invalid model type: {model.type}")

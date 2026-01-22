@@ -29,13 +29,17 @@ export function AddModelForm({ modelType, providers }: AddModelFormProps) {
     }
   })
 
-  // Get available providers that support this model type
-  const availableProviders = providers.available.filter(provider =>
-    providers.supported_types[provider]?.includes(modelType)
-  )
+  const providerOptions = Object.entries(providers.supported_types)
+    .filter(([, supportedTypes]) => supportedTypes.includes(modelType))
+    .map(([provider]) => provider)
 
   const onSubmit = async (data: CreateModelRequest) => {
-    await createModel.mutateAsync(data)
+    const payload = {
+      ...data,
+      api_key: data.api_key?.trim() || undefined,
+      base_url: data.base_url?.trim() || undefined,
+    }
+    await createModel.mutateAsync(payload)
     reset()
     setOpen(false)
   }
@@ -59,7 +63,7 @@ export function AddModelForm({ modelType, providers }: AddModelFormProps) {
     }
   }
 
-  if (availableProviders.length === 0) {
+  if (providerOptions.length === 0) {
     return (
       <div className="text-sm text-muted-foreground">
         {t.models.noProvidersForType.replace('{type}', getModelTypeName())}
@@ -103,20 +107,28 @@ export function AddModelForm({ modelType, providers }: AddModelFormProps) {
               onValueChange={(value) => setValue('provider', value)} 
               required
             >
-              <SelectTrigger id={providerSelectId}>
-                <SelectValue placeholder={t.models.selectProviderPlaceholder} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableProviders.map((provider) => (
+            <SelectTrigger id={providerSelectId}>
+              <SelectValue placeholder={t.models.selectProviderPlaceholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {providerOptions.map((provider) => {
+                const isAvailable = providers.available.includes(provider)
+                return (
                   <SelectItem key={provider} value={provider}>
                     <span className="capitalize">{provider}</span>
+                    {!isAvailable && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {t.models.notConfigured}
+                      </span>
+                    )}
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.provider && (
-              <p className="text-sm text-destructive mt-1">{t.models.providerRequired}</p>
-            )}
+                )
+              })}
+            </SelectContent>
+          </Select>
+          {errors.provider && (
+            <p className="text-sm text-destructive mt-1">{t.models.providerRequired}</p>
+          )}
           </div>
 
           <div>
@@ -133,6 +145,31 @@ export function AddModelForm({ modelType, providers }: AddModelFormProps) {
             <p className="text-xs text-muted-foreground mt-1">
               {modelType === 'language' && watch('provider') === 'azure' &&
                 t.models.azureHint}
+            </p>
+          </div>
+
+          <div>
+            <Label>{t.models.apiKey}</Label>
+            <Input
+              {...register('api_key')}
+              placeholder={t.models.apiKeyPlaceholder}
+              autoComplete="off"
+              type="password"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {t.models.apiKeyHint}
+            </p>
+          </div>
+
+          <div>
+            <Label>{t.models.baseUrl}</Label>
+            <Input
+              {...register('base_url')}
+              placeholder={t.models.baseUrlPlaceholder}
+              autoComplete="off"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {t.models.baseUrlHint}
             </p>
           </div>
 
