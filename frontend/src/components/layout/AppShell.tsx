@@ -22,10 +22,10 @@ export function AppShell({ children }: AppShellProps) {
     if (pathname.startsWith('/sources')) return t.navigation.sources
     if (pathname.startsWith('/search')) return t.navigation.askAndSearch
     if (pathname.startsWith('/podcasts')) return t.navigation.podcasts
-    if (pathname.startsWith('/models')) return t.navigation.models
-    if (pathname.startsWith('/transformations')) return t.navigation.transformations
     if (pathname.startsWith('/settings')) return t.navigation.settings
-    if (pathname.startsWith('/advanced')) return t.navigation.advanced
+    if (pathname.startsWith('/models')) return t.navigation.settings
+    if (pathname.startsWith('/transformations')) return t.navigation.settings
+    if (pathname.startsWith('/advanced')) return t.navigation.settings
     return t.common.workspace
   }, [pathname, t])
 
