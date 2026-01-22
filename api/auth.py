@@ -1,16 +1,85 @@
 import os
+from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+import jwt
+from jwt import InvalidTokenError
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
+JWT_ALGORITHM = "HS256"
+JWT_ISSUER = "open-notebook"
+JWT_AUDIENCE = "open-notebook-users"
+
+
+def get_jwt_secret() -> Optional[str]:
+    return os.environ.get("OPEN_NOTEBOOK_JWT_SECRET")
+
+
+def is_password_auth_enabled() -> bool:
+    return bool(
+        os.environ.get("OPEN_NOTEBOOK_PASSWORD")
+        or (
+            os.environ.get("OPEN_NOTEBOOK_ADMIN_EMAIL")
+            and os.environ.get("OPEN_NOTEBOOK_ADMIN_PASSWORD")
+        )
+    )
+
+
+def is_google_auth_enabled() -> bool:
+    return bool(
+        os.environ.get("OPEN_NOTEBOOK_GOOGLE_CLIENT_ID")
+        and os.environ.get("OPEN_NOTEBOOK_GOOGLE_CLIENT_SECRET")
+        and os.environ.get("OPEN_NOTEBOOK_GOOGLE_REDIRECT_URI")
+    )
+
+
+def is_auth_enabled() -> bool:
+    return is_password_auth_enabled() or is_google_auth_enabled()
+
+
+def create_access_token(email: str, provider: str) -> str:
+    jwt_secret = get_jwt_secret()
+    if not jwt_secret:
+        raise HTTPException(status_code=500, detail="JWT secret is not configured")
+
+    expires_minutes = int(os.environ.get("OPEN_NOTEBOOK_JWT_EXPIRES_MINUTES", "10080"))
+    now = datetime.now(tz=timezone.utc)
+    payload = {
+        "sub": email,
+        "provider": provider,
+        "iss": JWT_ISSUER,
+        "aud": JWT_AUDIENCE,
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=expires_minutes)).timestamp()),
+    }
+    return jwt.encode(payload, jwt_secret, algorithm=JWT_ALGORITHM)
+
+
+def verify_access_token(token: str) -> bool:
+    jwt_secret = get_jwt_secret()
+    if not jwt_secret:
+        return False
+    try:
+        jwt.decode(
+            token,
+            jwt_secret,
+            algorithms=[JWT_ALGORITHM],
+            audience=JWT_AUDIENCE,
+            issuer=JWT_ISSUER,
+        )
+    except InvalidTokenError:
+        return False
+    return True
+
 
 class PasswordAuthMiddleware(BaseHTTPMiddleware):
     """
     Middleware to check password authentication for all API requests.
-    Only active when OPEN_NOTEBOOK_PASSWORD environment variable is set.
+    Supports legacy password authentication and JWT bearer tokens.
     """
 
     def __init__(self, app, excluded_paths: Optional[list] = None):
@@ -25,8 +94,8 @@ class PasswordAuthMiddleware(BaseHTTPMiddleware):
         ]
 
     async def dispatch(self, request: Request, call_next):
-        # Skip authentication if no password is set
-        if not self.password:
+        # Skip authentication if auth is not configured
+        if not is_auth_enabled():
             return await call_next(request)
 
         # Skip authentication for excluded paths
@@ -59,17 +128,19 @@ class PasswordAuthMiddleware(BaseHTTPMiddleware):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Check password
-        if credentials != self.password:
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Invalid password"},
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # Check legacy password
+        if self.password and credentials == self.password:
+            return await call_next(request)
 
-        # Password is correct, proceed with the request
-        response = await call_next(request)
-        return response
+        # Check JWT token
+        if verify_access_token(credentials):
+            return await call_next(request)
+
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Invalid credentials"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 # Optional: HTTPBearer security scheme for OpenAPI documentation
@@ -85,8 +156,8 @@ def check_api_password(
     """
     password = os.environ.get("OPEN_NOTEBOOK_PASSWORD")
 
-    # No password set, allow access
-    if not password:
+    # No auth set, allow access
+    if not is_auth_enabled():
         return True
 
     # No credentials provided
@@ -98,11 +169,17 @@ def check_api_password(
         )
 
     # Check password
-    if credentials.credentials != password:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    if password and credentials.credentials == password:
+        return True
+
+    # Check JWT token
+    if verify_access_token(credentials.credentials):
+        return True
+
+    raise HTTPException(
+        status_code=401,
+        detail="Invalid credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
     return True

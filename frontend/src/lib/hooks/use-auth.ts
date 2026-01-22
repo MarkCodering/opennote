@@ -10,6 +10,7 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     login,
+    setToken,
     logout,
     checkAuth,
     checkAuthRequired,
@@ -38,8 +39,8 @@ export function useAuth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasHydrated, authRequired])
 
-  const handleLogin = async (password: string) => {
-    const success = await login(password)
+  const handleLogin = async (email: string, password: string) => {
+    const success = await login(email, password)
     if (success) {
       // Check if there's a stored redirect path
       const redirectPath = sessionStorage.getItem('redirectAfterLogin')
@@ -53,6 +54,17 @@ export function useAuth() {
     return success
   }
 
+  const handleSetToken = (token: string) => {
+    setToken(token)
+    const redirectPath = sessionStorage.getItem('redirectAfterLogin')
+    if (redirectPath) {
+      sessionStorage.removeItem('redirectAfterLogin')
+      router.push(redirectPath)
+    } else {
+      router.push('/notebooks')
+    }
+  }
+
   const handleLogout = () => {
     logout()
     router.push('/login')
@@ -63,6 +75,7 @@ export function useAuth() {
     isLoading: isLoading || !hasHydrated, // Treat lack of hydration as loading
     error,
     login: handleLogin,
+    setToken: handleSetToken,
     logout: handleLogout
   }
 }

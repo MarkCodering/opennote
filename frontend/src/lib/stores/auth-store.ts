@@ -11,9 +11,14 @@ interface AuthState {
   isCheckingAuth: boolean
   hasHydrated: boolean
   authRequired: boolean | null
+  authProviders: {
+    password: boolean
+    google: boolean
+  }
   setHasHydrated: (state: boolean) => void
   checkAuthRequired: () => Promise<boolean>
-  login: (password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<boolean>
+  setToken: (token: string) => void
   logout: () => void
   checkAuth: () => Promise<boolean>
 }
@@ -29,6 +34,10 @@ export const useAuthStore = create<AuthState>()(
       isCheckingAuth: false,
       hasHydrated: false,
       authRequired: null,
+      authProviders: {
+        password: false,
+        google: false
+      },
 
       setHasHydrated: (state: boolean) => {
         set({ hasHydrated: state })
@@ -47,7 +56,15 @@ export const useAuthStore = create<AuthState>()(
 
           const data = await response.json()
           const required = data.auth_enabled || false
-          set({ authRequired: required })
+          const passwordEnabled = data.password_auth_enabled || false
+          const googleEnabled = data.google_auth_enabled || false
+          set({
+            authRequired: required,
+            authProviders: {
+              password: passwordEnabled,
+              google: googleEnabled
+            }
+          })
 
           // If auth is not required, mark as authenticated
           if (!required) {
@@ -74,24 +91,24 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      login: async (password: string) => {
+      login: async (email: string, password: string) => {
         set({ isLoading: true, error: null })
         try {
           const apiUrl = await getApiUrl()
-
-          // Test auth with notebooks endpoint
-          const response = await fetch(`${apiUrl}/api/notebooks`, {
-            method: 'GET',
+          const response = await fetch(`${apiUrl}/api/auth/login`, {
+            method: 'POST',
             headers: {
-              'Authorization': `Bearer ${password}`,
               'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ email, password })
           })
           
           if (response.ok) {
+            const data = await response.json()
+            const token = data.access_token
             set({ 
               isAuthenticated: true, 
-              token: password, 
+              token, 
               isLoading: false,
               lastAuthCheck: Date.now(),
               error: null
@@ -100,11 +117,14 @@ export const useAuthStore = create<AuthState>()(
           } else {
             let errorMessage = 'Authentication failed'
             if (response.status === 401) {
-              errorMessage = 'Invalid password. Please try again.'
+              errorMessage = 'Invalid email or password. Please try again.'
             } else if (response.status === 403) {
               errorMessage = 'Access denied. Please check your credentials.'
             } else if (response.status >= 500) {
               errorMessage = 'Server error. Please try again later.'
+            } else if (response.status === 400) {
+              const errorData = await response.json().catch(() => ({}))
+              errorMessage = errorData.detail || 'Authentication is not configured.'
             } else {
               errorMessage = `Authentication failed (${response.status})`
             }
@@ -137,6 +157,15 @@ export const useAuthStore = create<AuthState>()(
           })
           return false
         }
+      },
+
+      setToken: (token: string) => {
+        set({
+          isAuthenticated: true,
+          token,
+          lastAuthCheck: Date.now(),
+          error: null
+        })
       },
       
       logout: () => {
