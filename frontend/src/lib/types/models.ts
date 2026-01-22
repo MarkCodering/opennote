@@ -11,6 +11,8 @@ export interface CreateModelRequest {
   name: string
   provider: string
   type: 'language' | 'embedding' | 'text_to_speech' | 'speech_to_text'
+  api_key?: string
+  base_url?: string
 }
 
 export interface ModelDefaults {
