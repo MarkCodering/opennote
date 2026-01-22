@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/use-auth'
 import { useAuthStore } from '@/lib/stores/auth-store'
 import { getConfig } from '@/lib/config'
@@ -15,12 +15,14 @@ import Image from 'next/image'
 
 export function LoginForm() {
   const { t, language } = useTranslation()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login, isLoading, error } = useAuth()
-  const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated } = useAuthStore()
+  const { login, isLoading, error, setToken } = useAuth()
+  const { authRequired, checkAuthRequired, hasHydrated, isAuthenticated, authProviders } = useAuthStore()
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [configInfo, setConfigInfo] = useState<{ apiUrl: string; version: string; buildTime: string } | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const highlights = [
     { icon: Book, label: t.navigation.notebooks },
     { icon: FileText, label: t.navigation.sources },
@@ -30,15 +32,15 @@ export function LoginForm() {
   const AuthShell = ({ children }: { children: React.ReactNode }) => (
     <div className="auth-portal min-h-screen flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-5xl">
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-stretch">
-          <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-border/60 bg-card/70 p-8 shadow-sm ide-panel">
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] items-stretch">
+          <div className="hidden lg:flex flex-col justify-between rounded-3xl border border-border/60 bg-card/70 p-8 shadow-sm">
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm ide-glow">
                   <Image src="/logo.svg" alt={t.common.appName} width={28} height={28} />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  <div className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                     {t.common.appName}
                   </div>
                   <div className="text-2xl font-semibold text-foreground">
@@ -89,6 +91,13 @@ export function LoginForm() {
       console.error('Failed to load config:', err)
     })
   }, [])
+
+  useEffect(() => {
+    const token = searchParams.get('token')
+    if (token) {
+      setToken(token)
+    }
+  }, [searchParams, setToken])
 
   // Check if authentication is required on mount
   useEffect(() => {
@@ -187,9 +196,9 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password.trim()) {
+    if (email.trim() && password.trim()) {
       try {
-        await login(password)
+        await login(email, password)
       } catch (error) {
         console.error('Unhandled error during login:', error)
         // The auth store should handle most errors, but this catches any unhandled ones
@@ -202,9 +211,12 @@ export function LoginForm() {
     window.location.href = `${baseUrl}/api/auth/google`
   }
 
+  const showPasswordLogin = authProviders.password
+  const showGoogleLogin = authProviders.google
+
   return (
     <AuthShell>
-      <Card className="auth-card w-full border border-border/60 rounded-3xl">
+      <Card className="auth-card w-full border border-border/60 rounded-3xl shadow-sm">
         <CardHeader className="text-center space-y-2">
           <CardTitle>{t.auth.loginTitle}</CardTitle>
           <CardDescription>
@@ -213,32 +225,59 @@ export function LoginForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11 text-base font-semibold gap-2"
-                onClick={handleGoogleLogin}
-              >
-                <Chrome className="h-4 w-4" />
-                {t.auth.signInWithGoogle}
-              </Button>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" />
-                {t.auth.orContinueWith}
-                <span className="h-px flex-1 bg-border" />
+            {showGoogleLogin && (
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-11 text-base font-semibold gap-2"
+                  onClick={handleGoogleLogin}
+                >
+                  <Chrome className="h-4 w-4" />
+                  {t.auth.signInWithGoogle}
+                </Button>
+                {showPasswordLogin && (
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="h-px flex-1 bg-border" />
+                    {t.auth.orContinueWith}
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder={t.auth.passwordPlaceholder}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                className="h-11 text-base"
-              />
-            </div>
+            )}
+
+            {showPasswordLogin && (
+              <div className="space-y-3">
+                <div className="space-y-2 text-left">
+                  <label className="text-sm font-medium text-foreground">
+                    {t.auth.emailLabel}
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder={t.auth.emailPlaceholder}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isLoading}
+                    className="h-11 text-base"
+                    autoComplete="email"
+                  />
+                </div>
+                <div className="space-y-2 text-left">
+                  <label className="text-sm font-medium text-foreground">
+                    {t.auth.passwordLabel}
+                  </label>
+                  <Input
+                    type="password"
+                    placeholder={t.auth.passwordPlaceholder}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="h-11 text-base"
+                    autoComplete="current-password"
+                  />
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-center gap-2 text-red-600 text-sm">
@@ -247,13 +286,15 @@ export function LoginForm() {
               </div>
             )}
 
-            <Button
-              type="submit"
-              className="w-full h-11 text-base font-semibold"
-              disabled={isLoading || !password.trim()}
-            >
-              {isLoading ? t.auth.signingIn : t.auth.signIn}
-            </Button>
+            {showPasswordLogin && (
+              <Button
+                type="submit"
+                className="w-full h-11 text-base font-semibold"
+                disabled={isLoading || !password.trim() || !email.trim()}
+              >
+                {isLoading ? t.auth.signingIn : t.auth.signIn}
+              </Button>
+            )}
 
             {configInfo && (
               <div className="text-xs text-center text-muted-foreground pt-2 border-t">

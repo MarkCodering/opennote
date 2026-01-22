@@ -17,6 +17,7 @@ dependencies = [
     "uvicorn>=0.24.0",
     "pydantic>=2.9.2",
     "loguru>=0.7.2",
+    "PyJWT>=2.9.0",
     "langchain>=1.2.0",
     "langgraph>=1.0.5",
     "tiktoken>=0.12.0",

@@ -100,6 +100,9 @@ app.add_middleware(
         "/openapi.json",
         "/redoc",
         "/api/auth/status",
+        "/api/auth/login",
+        "/api/auth/google",
+        "/api/auth/google/callback",
         "/api/config",
     ],
 )
