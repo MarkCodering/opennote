@@ -30,15 +30,12 @@ import {
   Book,
   Search,
   Mic,
-  Bot,
-  Shuffle,
   Settings,
   LogOut,
   ChevronLeft,
   Menu,
   FileText,
   Plus,
-  Wrench,
 } from 'lucide-react'
 
 const getNavigation = (t: TranslationKeys) => [
@@ -46,10 +43,7 @@ const getNavigation = (t: TranslationKeys) => [
   { name: t.navigation.sources, href: '/sources', icon: FileText },
   { name: t.navigation.askAndSearch, href: '/search', icon: Search },
   { name: t.navigation.podcasts, href: '/podcasts', icon: Mic },
-  { name: t.navigation.models, href: '/models', icon: Bot },
-  { name: t.navigation.transformations, href: '/transformations', icon: Shuffle },
   { name: t.navigation.settings, href: '/settings', icon: Settings },
-  { name: t.navigation.advanced, href: '/advanced', icon: Wrench },
 ] as const
 
 type CreateTarget = 'source' | 'notebook' | 'podcast'
