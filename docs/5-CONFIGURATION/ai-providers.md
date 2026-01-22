@@ -4,6 +4,28 @@ Complete setup instructions for each AI provider. Pick the one you're using.
 
 ---
 
+## Bring Your Own Key (BYOK) Tutorial
+
+Use this quick tutorial to connect any supported cloud provider with your own API key.
+
+1. **Pick a provider** from the sections below (OpenAI, Anthropic, Google, Groq, OpenRouter, etc.).
+2. **Create an API key** on the provider’s dashboard (links are in each section).
+3. **Add the key to your environment file**:
+   - Local development: `.env`
+   - Docker deployments: `docker.env`
+4. **Restart Open Notebook** so it loads the new environment variables.
+5. **Verify in the UI**: go to **Models → Providers** and confirm your provider shows as available.
+
+Example (OpenAI):
+```bash
+# .env or docker.env
+OPENAI_API_KEY=sk-proj-...
+```
+
+> **Tip:** You can enable multiple providers at once by adding multiple API keys. Just make sure each key is on its own line.
+
+---
+
 ## Cloud Providers (Recommended for Most)
 
 ### OpenAI
