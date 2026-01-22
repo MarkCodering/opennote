@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useModelDefaults, useModels, useProviders } from '@/lib/hooks/use-models'
@@ -16,12 +18,60 @@ export function ModelsSettingsSection() {
   const { data: providers, isLoading: providersLoading, refetch: refetchProviders } = useProviders()
 
   const isLoading = modelsLoading || defaultsLoading || providersLoading
-  const hasData = Boolean(models && defaults && providers)
 
   const handleRefresh = () => {
     refetchModels()
     refetchDefaults()
     refetchProviders()
+  }
+
+  let content: ReactNode
+
+  if (isLoading) {
+    content = (
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  } else if (!models || !defaults || !providers) {
+    content = (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">{t.models.failedToLoad}</p>
+      </div>
+    )
+  } else {
+    content = (
+      <div className="grid gap-6">
+        <ProviderStatus providers={providers} />
+        <DefaultModelsSection models={models} defaults={defaults} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ModelTypeSection
+            type="language"
+            models={models}
+            providers={providers}
+            isLoading={modelsLoading}
+          />
+          <ModelTypeSection
+            type="embedding"
+            models={models}
+            providers={providers}
+            isLoading={modelsLoading}
+          />
+          <ModelTypeSection
+            type="text_to_speech"
+            models={models}
+            providers={providers}
+            isLoading={modelsLoading}
+          />
+          <ModelTypeSection
+            type="speech_to_text"
+            models={models}
+            providers={providers}
+            isLoading={modelsLoading}
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -38,46 +88,7 @@ export function ModelsSettingsSection() {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-[40vh]">
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : !hasData ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">{t.models.failedToLoad}</p>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          <ProviderStatus providers={providers} />
-          <DefaultModelsSection models={models} defaults={defaults} />
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ModelTypeSection
-              type="language"
-              models={models}
-              providers={providers}
-              isLoading={modelsLoading}
-            />
-            <ModelTypeSection
-              type="embedding"
-              models={models}
-              providers={providers}
-              isLoading={modelsLoading}
-            />
-            <ModelTypeSection
-              type="text_to_speech"
-              models={models}
-              providers={providers}
-              isLoading={modelsLoading}
-            />
-            <ModelTypeSection
-              type="speech_to_text"
-              models={models}
-              providers={providers}
-              isLoading={modelsLoading}
-            />
-          </div>
-        </div>
-      )}
+      {content}
     </section>
   )
 }
