@@ -25,7 +25,7 @@ Three things:
 
 Setup: Get API key → Set env var → Done
 
-→ Go to **[AI Providers Guide](ai-providers.md)**
+→ Go to **[AI Providers Guide](ai-providers.md)** (includes a BYOK tutorial)
 
 ### Option 2: Local (Free & Private)
 - **Ollama** (open-source models, on your machine)
